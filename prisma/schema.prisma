@@ -1,0 +1,154 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+
+// 1. Utilisateur (User)
+model User {
+  userId        Int     @id @default(autoincrement())
+  username      String  @unique
+  email         String  @unique
+  passwordHash  String
+  address       String? // Le '?' signifie que le champ peut être NULL (nullable)
+  
+  // Relations inverses
+  orders        Order[] // 0..* commandes
+  cart          Cart?   // 0 ou 1 panier (relation 1:1, champ optionnel ici)
+
+  @@map("User") // Maintient le nom de la table
+}
+
+
+// 2. Catégorie (Category)
+model Category {
+  categoryId    Int     @id @default(autoincrement())
+  name          String  @unique
+  description   String?
+  
+  // Relation inverse : 1..* Products
+  products      Product[]
+
+  @@map("Category")
+}
+
+
+// 3. Produit (Product)
+model Product {
+  productId     Int     @id @default(autoincrement())
+  name          String
+  description   String?
+  price         Float // Le type float UML est traduit par Float en Prisma (pour les décimaux simples)
+  stock         Int   @map("stock")
+  
+  // Clé étrangère vers Category (1 produit est dans 1 catégorie)
+  categoryId    Int
+  category      Category @relation(fields: [categoryId], references: [categoryId])
+
+  // Relations inverses
+  cartItems     CartItem[] // Nouveau modèle d'association many-to-many pour Cart
+  orderDetails  OrderDetail[] // Nouveau modèle pour les détails de commande
+
+  @@map("Product")
+}
+
+
+// 4. Commande (Order)
+model Order {
+  orderId       Int     @id @default(autoincrement())
+  // Relation unidirectionnelle "utilise" (vers Payment) est incluse dans Payment
+  
+  // Clé étrangère vers User (1 Commande appartient à 1 User)
+  userId        Int
+  user          User    @relation(fields: [userId], references: [userId])
+
+  // Attributs
+  createdAt     DateTime @map("createdAt")
+  statut        String
+  totalAmount   Float
+
+  // Relations inverses
+  payment       Payment? // 0 ou 1 paiement
+  orderDetails  OrderDetail[] // Les détails de cette commande
+
+  @@map("Order")
+}
+
+
+// 5. Paiement (Payment)
+model Payment {
+  paymentId       Int      @id @default(autoincrement())
+  paymentOption   String
+  paymentDate     DateTime @map("paymentDate")
+  amount          Float
+  
+  // Clé étrangère vers Order (1 Paiement est pour 1 Commande)
+  orderId         Int      @unique // Unique pour garantir 1:1 ou 0:1
+  order           Order    @relation(fields: [orderId], references: [orderId])
+
+  @@map("Payment")
+}
+
+
+// 6. Panier (Cart) - Le conteneur
+model Cart {
+  cartId        Int      @id @default(autoincrement())
+  createdAt     DateTime
+  updatedAt     DateTime
+  
+  // Clé étrangère vers User (1 Panier appartient à 1 User)
+  userId        Int      @unique // Unique pour garantir 1:1
+  user          User     @relation(fields: [userId], references: [userId])
+
+  // Relations inverses : 0..* LignePanier
+  cartItems     CartItem[]
+
+  @@map("Cart")
+}
+
+
+// 7. Ligne de Panier (CartItem) - Modèle d'association M:N (Cart contient Product)
+model CartItem {
+  // Clés primaires composées (clé composite, bonne pratique pour M:N)
+  cartId        Int
+  productId     Int
+  
+  // Attributs spécifiques à l'association (ex: quantité)
+  quantity      Int
+
+  // Relations
+  cart          Cart    @relation(fields: [cartId], references: [cartId])
+  product       Product @relation(fields: [productId], references: [productId])
+
+  @@id([cartId, productId]) // Définition de la clé primaire composée
+  @@map("CartItem")
+}
+
+
+// 8. Détail de Commande (OrderDetail) - Modèle d'association M:N pour Order contient Product
+model OrderDetail {
+  orderId           Int
+  productId         Int
+  
+  quantity          Int
+  priceAtPurchase   Float // Prix au moment de l'achat (important pour l'historique)
+
+  // Relations
+  order             Order    @relation(fields: [orderId], references: [orderId])
+  product           Product  @relation(fields: [productId], references: [productId])
+
+  @@id([orderId, productId])
+  @@map("OrderDetail")
+}
