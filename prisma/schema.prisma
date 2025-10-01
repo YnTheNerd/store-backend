@@ -6,7 +6,6 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
 }
 
 datasource db {
@@ -18,8 +17,12 @@ model User {
   userId       Int       @id @default(autoincrement())
   username     String
   email        String    @unique
-  passwordHash String
+  password     String    @default("changeme")
   address      String
+  isActive     Boolean   @default(false)
+  otpCode     String?
+  otpExpiresAt DateTime?
+  role        String      @default("Client")
 
   carts   Cart[]
   orders  Order[]
@@ -31,6 +34,7 @@ model Product {
   description String
   price       Float
   stock       Int
+  image       String
 
   categoryId  Int
   category    Category  @relation(fields: [categoryId], references: [categoryId])
