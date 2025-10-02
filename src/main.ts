@@ -1,44 +1,40 @@
+// src/main.ts
+
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { ValidationPipe } from '@nestjs/common';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger'; 
+import 'reflect-metadata';
 import { PrismaService } from './prisma/prisma.service';
-import * as bcrypt from 'bcrypt';
+
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // Ligne cruciale pour appliquer la validation DTO partout
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true, // Supprime les propriétés qui ne sont pas définies dans le DTO
+      transform: true, // Transforme automatiquement les données entrantes en instances DTO typées
+    }),
+  );
+  
+  // --- DÉBUT DE LA CONFIGURATION SWAGGER ---
+  
   const config = new DocumentBuilder()
-  .setTitle('Ecommerce Manager API')
-  .setDescription('Ecommerce Manager API description')
-  .setVersion('1.0')
-  .addTag('cats')
-  .build();
-  const documentFactory = () => SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, documentFactory);
+    .setTitle('E-Commerce API')
+    .setDescription('Documentation des endpoints CRUD pour les produits et catégories.')
+    .setVersion('1.0')
+    .addTag('product') // Ajoute un tag pour le module produit
+    .build();
+    
+  const document = SwaggerModule.createDocument(app, config);
+  
+  // L'interface de documentation sera accessible à l'URL /api
+  SwaggerModule.setup('api', app, document);
 
-  const prisma = app.get(PrismaService);
-  const adminEmail = 'francoiseleslie05@gmail.com';
+  // --- FIN DE LA CONFIGURATION SWAGGER ---
 
-  const existingAdmin = await prisma.user.findUnique({ where: { email: adminEmail } });
-
-  if (!existingAdmin) {
-    const passwordHash = await bcrypt.hash('123456789', 10);
-
-    await prisma.user.create({
-      data: {
-        username: 'SuperAdmin',
-        email: adminEmail,
-        password: passwordHash,
-        address: 'HQ',
-        isActive: true,        
-        role: 'superadmin',    
-      },
-    });
-
-    console.log(' Super admin créé avec succès !');
-  } else {
-    console.log(' Super admin déjà existant.');
-  }
-
-  await app.listen(process.env.APP_PORT || 3000);
+  await app.listen(3000);
 }
 bootstrap();
