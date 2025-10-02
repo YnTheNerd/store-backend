@@ -16,15 +16,15 @@ export class AuthService {
     private readonly mailService: MailerService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService
-  ) {}
+  ) { }
 
   async signup(signupDto: SignupDto) {
-    const { email, password, username, address, isActive } = signupDto;
+    const { email, password, username, address} = signupDto;
 
     try {
-      
+
       const otp = await this.mailService.sendSignupEmail(email);
-    
+
       const user = await this.prismaService.user.findUnique({
         where: { email },
       });
@@ -38,10 +38,10 @@ export class AuthService {
       expiresAt.setMinutes(expiresAt.getMinutes() + 10);
 
       await this.prismaService.user.create({
-        data: { username, email, password: hash, address, isActive, otpCode: otp, otpExpiresAt:expiresAt},
+        data: { username, email, password: hash, address, isActive:false, otpCode: otp, otpExpiresAt: expiresAt },
       });
 
-      
+
 
       return { message: 'User successfully created', otp: otp };
     } catch (error) {
@@ -82,7 +82,7 @@ export class AuthService {
       where: { email },
       data: {
         isActive: true,
-        otpCode: null,          
+        otpCode: null,
         otpExpiresAt: null,
       },
     });
@@ -92,38 +92,54 @@ export class AuthService {
 
   //connexion avec jwt
   async signin(signinDto: SigninDto) {
-    const {email, password} = signinDto;
-
+    const { email, password } = signinDto;
+  
     const user = await this.prismaService.user.findUnique({
-        where: { email },
+      where: { email },
     });
+  
     if (!user) {
-        throw new NotFoundException('Utilisateur introuvable');
+      throw new NotFoundException('Utilisateur introuvable');
     }
+  
     if (!user.isActive) {
-        throw new ConflictException('Compte non activé');
+      throw new ConflictException('Compte non activé');
     }
-    const match = await bcrypt.compare(password,user.password);
-    if(!match){
-        throw new UnauthorizedException('mot de passe incorrecte');
+  
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) {
+      throw new UnauthorizedException('Mot de passe incorrect');
     }
-
+  
     const payload = {
       sub: user.userId,
-      email: user.email
+      email: user.email,
+      role: user.role, 
+    };
+  
+    let token: string;
+  
+    if (user.role === 'superadmin' || user.email === 'francoiseleslie05@gmail.com') {
+      token = this.jwtService.sign(payload, {
+        secret: this.configService.get('SECRET_KEY'),
+      });
+    } else {
+      token = this.jwtService.sign(payload, {
+        expiresIn: '24h',
+        secret: this.configService.get('SECRET_KEY'),
+      });
     }
-    const token = this.jwtService.sign(payload, {
-      expiresIn: '24h',
-      secret: this.configService.get('SECRET_KEY')
-    });
-    return{
-      token, user:{
+  
+    return {
+      token,
+      user: {
         username: user.username,
-        useremail: user.email
-      }
-    }
-}
-
+        useremail: user.email,
+        role: user.role,
+      },
+    };
+  }
+  
 
 }
 

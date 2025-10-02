@@ -14,6 +14,4 @@ export class SignupDto{
     @ApiProperty()
     @IsNotEmpty()
     readonly address: string
-    @IsNotEmpty()
-    readonly isActive: boolean
 }
