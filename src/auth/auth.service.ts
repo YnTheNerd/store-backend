@@ -19,7 +19,7 @@ export class AuthService {
   ) { }
 
   async signup(signupDto: SignupDto) {
-    const { email, password, username, address, isActive } = signupDto;
+    const { email, password, username, address} = signupDto;
 
     try {
 
@@ -38,7 +38,7 @@ export class AuthService {
       expiresAt.setMinutes(expiresAt.getMinutes() + 10);
 
       await this.prismaService.user.create({
-        data: { username, email, password: hash, address, isActive, otpCode: otp, otpExpiresAt: expiresAt },
+        data: { username, email, password: hash, address, isActive:false, otpCode: otp, otpExpiresAt: expiresAt },
       });
 
 

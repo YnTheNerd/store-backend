@@ -1,5 +1,6 @@
 // src/product/dto/create-product.dto.ts
 
+import { ApiProperty } from '@nestjs/swagger';
 import {
   IsNotEmpty,
   IsString,
@@ -10,11 +11,15 @@ import {
 
 export class CreateProductDto {
   // Nom (String, Obligatoire)
+  @ApiProperty()
   @IsString()
   @IsNotEmpty()
   name: string;
-
-  // Description (String, Optionnel)
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  image: string;
+  @ApiProperty()
   @IsString()
   @IsNotEmpty()
   description: string;
@@ -23,15 +28,18 @@ export class CreateProductDto {
   @IsNumber()
   @IsPositive()
   @IsNotEmpty()
+  @ApiProperty()
   price: number;
 
   // Stock (Entier, Obligatoire)
   @IsInt()
   @IsNotEmpty()
+  @ApiProperty()
   stock: number;
 
   // Clé étrangère vers la Catégorie (Entier, Obligatoire)
   @IsInt()
   @IsNotEmpty()
+  @ApiProperty()
   categoryId: number;
 }
