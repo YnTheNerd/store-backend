@@ -11,6 +11,11 @@ import { PrismaService } from './prisma/prisma.service';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  app.enableCors({
+    origin: '*',
+    methods: 'POST, GET, PATCH,PUT, DELETE, HEAD',
+    credentials: false,
+  })
   // Ligne cruciale pour appliquer la validation DTO partout
   app.useGlobalPipes(
     new ValidationPipe({

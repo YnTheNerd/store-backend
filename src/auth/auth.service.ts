@@ -133,6 +133,7 @@ export class AuthService {
     return {
       token,
       user: {
+        userId:user.userId,
         username: user.username,
         useremail: user.email,
         role: user.role,

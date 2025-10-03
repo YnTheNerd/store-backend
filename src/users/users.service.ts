@@ -48,14 +48,6 @@ export class UsersService {
                             createdAt: true,
                             status: true,
                             totalAmount: true,
-                            payment: {
-                                select: {
-                                    paymentId: true,
-                                    paymentDate: true,
-                                    paymentOption: true,
-                                    amount: true
-                                }
-                            }
                         }
                     }
                 },
@@ -121,14 +113,7 @@ export class UsersService {
                         createdAt: true,
                         status: true,
                         totalAmount: true,
-                        payment: {
-                            select: {
-                                paymentId: true,
-                                paymentDate: true,
-                                paymentOption: true,
-                                amount: true
-                            }
-                        }
+
                     }
                 }
             }

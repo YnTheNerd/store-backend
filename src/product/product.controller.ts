@@ -34,7 +34,7 @@ export class ProductController {
     // 1. Récupère le paramètre 'skip' de l'URL.
     // 2. NestJS le convertit automatiquement en nombre (grâce au transform: true du ValidationPipe).
     @Query('skip') skip: number = 0, // Valeur par défaut de 0 si absent
-    @Query('take') take: number = 10, // Valeur par défaut de 10 si absent
+    @Query('take') take: number = 28, // Valeur par défaut de 10 si absent
   ): Promise<Product[]> {
     // Appelle le service avec les paramètres paginés
     return this.productService.findAll(skip, take);
