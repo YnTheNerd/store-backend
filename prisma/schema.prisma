@@ -6,7 +6,6 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
 }
 
 datasource db {
@@ -18,8 +17,12 @@ model User {
   userId       Int       @id @default(autoincrement())
   username     String
   email        String    @unique
-  passwordHash String
+  password     String    @default("changeme")
   address      String
+  isActive     Boolean   @default(false)
+  otpCode     String?
+  otpExpiresAt DateTime?
+  role        String      @default("Client")
 
   carts   Cart[]
   orders  Order[]
@@ -31,6 +34,7 @@ model Product {
   description String
   price       Float
   stock       Int
+  image       String
 
   categoryId  Int
   category    Category  @relation(fields: [categoryId], references: [categoryId])
@@ -54,6 +58,7 @@ model Cart {
 
   user       User       @relation(fields: [userId], references: [userId])
   items      CartItem[]
+  orders     Order[]    
 }
 
 model CartItem {
@@ -66,23 +71,18 @@ model CartItem {
   product Product @relation(fields: [productId], references: [productId])
 }
 
+
 model Order {
   orderId     Int       @id @default(autoincrement())
   userId      Int
+  cartId      Int       
   createdAt   DateTime  @default(now())
   status      String
-  totalAmount Float
+  totalAmount Int
 
   user     User     @relation(fields: [userId], references: [userId])
-  payment  Payment?
+  cart     Cart     @relation(fields: [cartId], references: [cartId]) 
 }
 
-model Payment {
-  paymentId    Int      @id @default(autoincrement())
-  orderId      Int      @unique
-  paymentDate  DateTime @default(now())
-  paymentOption String
-  amount       Float
 
-  order Order @relation(fields: [orderId], references: [orderId])
-}
+
