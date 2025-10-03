@@ -9,11 +9,21 @@ import { OrderModule } from './order/order.module';
 import { PaymentModule } from './payment/payment.module';
 import { AuthModule } from './auth/auth.module';
 import { MailerModule } from './mailer/mailer.module';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
-      isGlobal: true, 
+      isGlobal: true,
+    }),
+    ThrottlerModule.forRoot({
+      throttlers: [
+        {
+          ttl: 60000,
+          limit: 10,
+        },
+      ],
     }),
     PrismaModule,
     UsersModule,
@@ -25,6 +35,14 @@ import { MailerModule } from './mailer/mailer.module';
     AuthModule,
     MailerModule,
   ],
+  providers: [
+
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard
+    }
+
+  ]
 })
-export class AppModule {}
+export class AppModule { }
 
