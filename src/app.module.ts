@@ -9,8 +9,7 @@ import { OrderModule } from './order/order.module';
 import { PaymentModule } from './payment/payment.module';
 import { AuthModule } from './auth/auth.module';
 import { MailerModule } from './mailer/mailer.module';
-import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
-import { APP_GUARD } from '@nestjs/core';
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
 
 @Module({
   imports: [
@@ -34,6 +33,7 @@ import { APP_GUARD } from '@nestjs/core';
     PaymentModule,
     AuthModule,
     MailerModule,
+    CloudinaryModule,
   ],
   providers: [
 
