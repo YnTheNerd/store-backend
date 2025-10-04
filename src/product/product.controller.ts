@@ -9,24 +9,62 @@ import {
   Param,
   Patch,
   Delete,
+  UseInterceptors,
+  UploadedFile,
+  ParseFilePipe,
+  MaxFileSizeValidator,
+  FileTypeValidator,
 } from '@nestjs/common';
+
 import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto/create-product.dto';
 import { UpdateProductDto } from './dto/create-product.dto/update-product.dto';
 
 // Import du type Product depuis le client Prisma généré dans le dossier personnalisé
 import { Product } from '../../generated/prisma';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
+import { FinalProductData } from './dto/create-product.dto/FinalProductData.dto';
 
 @Controller('product') // La route de base est /product
 export class ProductController {
   // 1. Injection du Service
-  constructor(private readonly productService: ProductService) {}
+  constructor(
+    private readonly productService: ProductService,
+    private readonly cloudinaryService: CloudinaryService,
+  ) {}
 
-  @Post() // Gère la requête POST /product
-  async create(@Body() createProductDto: CreateProductDto): Promise<Product> {
-    // 2. Le DTO est automatiquement validé ici par le ValidationPipe global
-    // 3. On appelle la méthode du service et on retourne le résultat
-    return this.productService.create(createProductDto);
+  @Post()
+  @UseInterceptors(FileInterceptor('image'))
+  async create(
+    @Body() createProductDto: CreateProductDto,
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 5 }), // Max 5MB
+          new FileTypeValidator({ fileType: 'image/(jpeg|png|webp)' }),
+        ],
+        fileIsRequired: true,
+      }),
+    )
+    file: any,
+  ): Promise<Product> {
+    // Upload du fichier sur Cloudinary
+    const cloudinaryResult = await this.cloudinaryService.uploadFile(file);
+    const imageUrl = cloudinaryResult.secure_url;
+
+    // Création de l'objet final avec l'URL de l'image
+    const finalProductData: FinalProductData = {
+      name: createProductDto.name,
+      description: createProductDto.description,
+      image: imageUrl,
+      price: createProductDto.price,
+      stock: createProductDto.stock,
+      categoryId: createProductDto.categoryId,
+    };
+
+    // Appel du service avec les bonnes données
+    return this.productService.create(finalProductData);
   }
 
   @Get() // Gère la requête GET /product?skip=0&take=10

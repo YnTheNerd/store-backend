@@ -11,6 +11,18 @@ import { PrismaService } from './prisma/prisma.service';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+// --- Configuration CORS (AJOUTEZ CECI) ---
+  app.enableCors({
+    origin: [
+      'http://localhost:10000', // L'origine exacte de votre frontend React
+      'http://127.0.0.1:10000',  // Une alternative commune
+      // Ajoutez d'autres origines si votre collaborateur utilise une IP différente,
+      // ou utilisez '*' pour accepter TOUTES les origines (utile en développement)
+    ],
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE', // Autoriser toutes les méthodes CRUD
+    credentials: true, // Important si vous travaillez avec des cookies/JWT
+  });
+  
   // Ligne cruciale pour appliquer la validation DTO partout
   app.useGlobalPipes(
     new ValidationPipe({

@@ -1,37 +1,36 @@
-// src/product/dto/create-product.dto.ts
-
 import {
   IsNotEmpty,
   IsString,
   IsNumber,
   IsInt,
   IsPositive,
+  IsOptional,
 } from 'class-validator';
 
+import { Transform } from 'class-transformer';
+
 export class CreateProductDto {
-  // Nom (String, Obligatoire)
   @IsString()
   @IsNotEmpty()
   name: string;
 
-  // Description (String, Optionnel)
   @IsString()
   @IsNotEmpty()
   description: string;
 
-  // Prix (Nombre, Obligatoire, Positif)
+  // Transformation des strings en numbers
+  @Transform(({ value }) => parseFloat(value))
   @IsNumber()
   @IsPositive()
-  @IsNotEmpty()
   price: number;
 
-  // Stock (Entier, Obligatoire)
-  @IsInt()
-  @IsNotEmpty()
+  @Transform(({ value }) => parseInt(value, 10))
+  @IsNumber()
+  @IsPositive()
   stock: number;
 
-  // Clé étrangère vers la Catégorie (Entier, Obligatoire)
-  @IsInt()
-  @IsNotEmpty()
+  @Transform(({ value }) => parseInt(value, 10))
+  @IsNumber()
+  @IsPositive()
   categoryId: number;
 }

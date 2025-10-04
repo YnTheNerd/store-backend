@@ -9,6 +9,7 @@ import { OrderModule } from './order/order.module';
 import { PaymentModule } from './payment/payment.module';
 import { AuthModule } from './auth/auth.module';
 import { MailerModule } from './mailer/mailer.module';
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { MailerModule } from './mailer/mailer.module';
     PaymentModule,
     AuthModule,
     MailerModule,
+    CloudinaryModule,
   ],
 })
 export class AppModule {}

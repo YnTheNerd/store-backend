@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { Category } from '../../generated/prisma';
 import { ApiCreatedResponse, ApiTags } from '@nestjs/swagger';
@@ -18,5 +18,10 @@ export class CategoryController {
   async create(@Body() createCategoryDto: CreateCategoryDto): Promise<Category> {
     // Le contrôleur appelle simplement le service
     return this.categoryService.create(createCategoryDto);
+  }
+
+  @Get() 
+  async findAll(): Promise<Category[]> {
+    return this.categoryService.findAll();
   }
 }
