@@ -142,4 +142,39 @@ export class CartService {
 
     return total ;
   }
+
+
+  async getCartById(userId: number) {
+    const cart = await this.prisma.cart.findFirst({
+        where: { userId },
+        select: {
+            cartId: true,
+            user: {
+              select: {
+                userId: true,
+                username: true,
+                email: true,
+              },
+            },
+            items: {
+              include: {
+                product: {
+                  select: {
+                    productId: true,
+                    name: true,
+                    price: true,
+                    image: true,
+                  },
+                },
+              },
+            },
+        }
+    });
+
+    if (!cart) {
+        throw new NotFoundException(`Panier avec l'ID introuvable`);
+    }
+
+    return cart;
+}
 }
