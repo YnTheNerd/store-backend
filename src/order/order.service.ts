@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CartService } from 'src/cart/cart.service';
+import { CreateOrderDto } from './dto/createOrderDto';
 
 @Injectable()
 export class OrderService {
@@ -8,10 +9,11 @@ export class OrderService {
     private readonly prisma: PrismaService,
     private readonly cartService: CartService,
 
-) {}
+  ) { }
 
   //Placer une commande à partir d’un panier
-  async placeOrder(userId: number, cartId: number) {
+  async placeOrder(createOrderDto: CreateOrderDto) {
+    const {userId, cartId} = createOrderDto;
     // Vérifier si le panier existe et contient des produits
     const cart = await this.prisma.cart.findUnique({
       where: { cartId },
@@ -34,7 +36,12 @@ export class OrderService {
         user: true,
         cart: {
           include: {
-            items: { include: { product: true } },
+            items: {
+              include:
+              {
+                product: true
+              }
+            },
           },
         },
       },
@@ -59,7 +66,7 @@ export class OrderService {
   }
 
   // Suivre une commande
-  async trackOrder(orderId: number, ) {
+  async trackOrder(orderId: number, status: string) {
     const order = await this.prisma.order.findUnique({
       where: { orderId },
       include: {
@@ -74,17 +81,55 @@ export class OrderService {
     if (!order) throw new NotFoundException('Commande introuvable');
 
     return {
-      orderId: order.orderId,
-      status: order.status,
-      totalAmount: order.totalAmount,
-      createdAt: order.createdAt,
-      items: order.cart.items.map((item) => ({
-        productId: item.product.productId,
-        name: item.product.name,
-        image: item.product.image,
-        quantity: item.quantity,
-        price: item.product.price,
-      })),
+      status,
     };
   }
+
+  //get all users
+  async getOrders(page: number = 1, limit: number = 10) {
+    const skip = (page - 1) * limit;
+
+    const [orders, total] = await Promise.all([
+      this.prisma.order.findMany({
+        skip,
+        take: limit,
+        select: {
+          orderId: true,
+          user: {
+            select:{
+              username: true,
+            }
+          },
+          cart: {
+            select:{
+              items:{
+                select:{
+                  product:{
+                    select:{
+                      name: true,
+                    }
+                  }
+                }
+              }
+            }
+          },
+          createdAt: true,
+          status: true,
+          totalAmount: true,
+        },
+        orderBy: { orderId: 'asc' }
+      }),
+      this.prisma.user.count()
+    ]);
+
+    return {
+      data: orders,
+      meta: {
+        totalItems: total,
+        currentPage: page,
+        totalPages: Math.ceil(total / limit)
+      }
+    };
+  }
+
 }

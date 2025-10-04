@@ -25,4 +25,10 @@ export class CartController {
     destructCart(@Param('userId') userId: number) {
         return this.cartService.destructCart(userId);
     }
+
+    @Get(':userId')
+    getCartById(@Param('id') id: string) {
+        const userId = parseInt(id);
+        return this.cartService.getCartById(userId);
+    }
 }
