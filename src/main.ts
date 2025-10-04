@@ -11,6 +11,7 @@ import * as bcrypt from 'bcrypt';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+// --- Configuration CORS (AJOUTEZ CECI) ---
   app.enableCors({
     origin: ['http://192.168.0.104:5173','http://192.168.0.119//:3000','http://localhost:3000'],
     methods: 'POST,GET,PATCH,PUT,DELETE,HEAD,OPTIONS',

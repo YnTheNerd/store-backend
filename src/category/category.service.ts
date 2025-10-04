@@ -15,4 +15,10 @@ export class CategoryService {
       data: createCategoryDto, 
     });
   }
+
+
+  async findAll(): Promise<Category[]> {
+    // Récupère toutes les catégories (pour la liste déroulante)
+    return await this.prisma.category.findMany({});
+  }
 }
